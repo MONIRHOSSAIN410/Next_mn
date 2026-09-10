@@ -15,6 +15,35 @@ export const site = {
   ],
 };
 
+/**
+ * The public address of the site, always a valid absolute URL (no trailing slash).
+ *
+ * Vercel pre-fills variables from .env.example with EMPTY values, and `??` lets
+ * an empty string through — `new URL("")` then fails the whole build with
+ * ERR_INVALID_URL. So: ignore blanks, add a missing https://, and fall back to
+ * Vercel's own production domain, then localhost.
+ */
+function resolveSiteUrl() {
+  const candidates = [
+    process.env.NEXT_PUBLIC_SITE_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.VERCEL_URL,
+  ];
+  for (const raw of candidates) {
+    const value = raw?.trim();
+    if (!value) continue;
+    try {
+      const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+      return url.origin;
+    } catch {
+      // not a usable URL — try the next one
+    }
+  }
+  return "http://localhost:3000";
+}
+
+export const siteUrl = resolveSiteUrl();
+
 /** Shown until the API responds, so the header never renders empty. */
 export const fallbackCategories: Pick<
   Category,

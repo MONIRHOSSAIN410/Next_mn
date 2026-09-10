@@ -6,7 +6,7 @@ import type {
 } from "./types";
 
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
+  process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "") ||
   "http://localhost:5000/api";
 
 type Query = Record<string, string | number | string[] | undefined | null>;

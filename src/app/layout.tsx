@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
 
-import { site } from "@/lib/site";
+import { site, siteUrl } from "@/lib/site";
 import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -13,9 +13,7 @@ const inter = { variable: "--font-sans" };
 const sora = { variable: "--font-display" };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ),
+  metadataBase: new URL(siteUrl),
   title: {
     default: `${site.name} — ${site.tagline}`,
     template: `%s | ${site.name}`,
