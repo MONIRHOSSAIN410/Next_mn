@@ -21,6 +21,7 @@ export function MegaMenu({
   brands: Brand[];
 }) {
   const [openSlug, setOpenSlug] = React.useState<string | null>(null);
+  const openTimer = React.useRef<number | undefined>(undefined);
   const closeTimer = React.useRef<number | undefined>(undefined);
 
   const brandByName = React.useMemo(
@@ -28,15 +29,39 @@ export function MegaMenu({
     [brands]
   );
 
-  const open = (slug: string) => {
+  const clearTimers = () => {
+    window.clearTimeout(openTimer.current);
     window.clearTimeout(closeTimer.current);
-    setOpenSlug(slug);
-  };
-  const scheduleClose = () => {
-    closeTimer.current = window.setTimeout(() => setOpenSlug(null), 140);
   };
 
-  React.useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+  /**
+   * Every open waits a beat, so sweeping the cursor across the bar on the way
+   * somewhere else no longer pops open each panel it passes. Switching to a
+   * sibling while a panel is already up waits half as long — the intent is
+   * clearer by then, and the menu still feels responsive.
+   */
+  const OPEN_DELAY = 140;
+  const SWITCH_DELAY = 70;
+
+  const open = (slug: string) => {
+    clearTimers();
+    openTimer.current = window.setTimeout(
+      () => setOpenSlug(slug),
+      openSlug ? SWITCH_DELAY : OPEN_DELAY
+    );
+  };
+
+  const openNow = (slug: string) => {
+    clearTimers();
+    setOpenSlug(slug);
+  };
+
+  const scheduleClose = () => {
+    clearTimers();
+    closeTimer.current = window.setTimeout(() => setOpenSlug(null), 180);
+  };
+
+  React.useEffect(() => clearTimers, []);
 
   return (
     <nav
@@ -57,7 +82,7 @@ export function MegaMenu({
           >
             <Link
               href={`/products?category=${category.slug}`}
-              onFocus={() => open(category.slug)}
+              onFocus={() => openNow(category.slug)}
               className={cn(
                 "text-chrome-foreground flex items-center gap-1.5 border-b-2 border-transparent px-3 text-[13px] font-semibold tracking-wide whitespace-nowrap uppercase transition-colors xl:px-4",
                 "hover:text-brand",

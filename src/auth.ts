@@ -71,10 +71,19 @@ const googleProvider = Google({
 /**
  * Auth.js refuses to start without a secret, and the failure surfaces in the
  * browser as the unhelpful "There was a problem with the server configuration".
- * In development we fall back to a fixed value so a fresh clone just runs;
- * in production a missing AUTH_SECRET is still a hard error.
+ * In development we fall back to a fixed value so a fresh clone just runs.
  */
 const DEV_FALLBACK_SECRET = "mobile-shop-development-only-secret-do-not-ship";
+
+/**
+ * True when this is a real deployment that was started without AUTH_SECRET.
+ * The site still runs (see `resolveSecret`), but sessions only survive as long
+ * as the deployment does — so it is worth shouting about.
+ */
+export const authSecretMissing =
+  process.env.NODE_ENV === "production" &&
+  !process.env.AUTH_SECRET &&
+  process.env.NEXT_PHASE !== "phase-production-build";
 
 /**
  * A sign-in failure the UI can explain. Extending CredentialsSignin keeps
@@ -90,15 +99,26 @@ function resolveSecret() {
   if (process.env.AUTH_SECRET) return process.env.AUTH_SECRET;
 
   // `next build` imports this module to collect route data. Nothing is signed
-  // at that point, so a missing secret must not fail the build — only running
-  // in production without one is a real problem.
+  // at that point, so a missing secret must not fail the build.
   const isBuilding = process.env.NEXT_PHASE === "phase-production-build";
 
-  if (process.env.NODE_ENV === "production" && !isBuilding) {
-    throw new Error(
-      "AUTH_SECRET is not set. Run `npm run setup` in the project root, or set " +
-        "AUTH_SECRET in your hosting provider's environment variables."
+  if (authSecretMissing) {
+    /**
+     * A deployment with no AUTH_SECRET used to throw here. That was worse than
+     * the problem: this module is imported by the proxy and by the header, so
+     * one missing variable turned every page of the site into a 500 — on
+     * Vercel that reads as "the whole deploy is broken" rather than "you forgot
+     * one setting". Now the site stays up on a per-deployment key: sign-in
+     * works, sessions just do not survive the next deploy, and the log below
+     * says exactly what to add and where.
+     */
+    console.error(
+      "\n  ❌  AUTH_SECRET is not set.\n" +
+        "      Vercel → Project → Settings → Environment Variables → add AUTH_SECRET,\n" +
+        "      then redeploy. Generate one with:  node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"\n" +
+        "      Until then everyone is signed out again on every deployment.\n"
     );
+    return `unset-auth-secret:${process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "local"}`;
   }
 
   if (!isBuilding) {

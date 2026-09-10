@@ -38,26 +38,52 @@ export function ProductVisual({
     product.images?.[0] ||
     (product.slug ? `/products/${product.slug}.webp` : "");
 
+  /**
+   * The bundled artwork is already a small, correctly sized WebP, so sending it
+   * through /_next/image only adds a resize round-trip — on a cold page that
+   * meant cards sat blank while two dozen images were re-encoded (and on Vercel
+   * it burns image-optimisation quota for nothing). Real photos added later
+   * still get optimised.
+   */
+  const isBundledArt = src.startsWith("/products/");
+
   const [failed, setFailed] = React.useState(false);
+  const [loaded, setLoaded] = React.useState(false);
 
   // A different product in the same slot deserves a fresh attempt.
   const [lastSrc, setLastSrc] = React.useState(src);
   if (src !== lastSrc) {
     setLastSrc(src);
     setFailed(false);
+    setLoaded(false);
   }
 
   if (src && !failed) {
     return (
-      <Image
-        src={src}
-        alt={product.name}
-        fill
-        sizes={sizes}
-        priority={priority}
-        className={cn("object-contain", className)}
-        onError={() => setFailed(true)}
-      />
+      <>
+        {/* holds the space so a card is never a blank white box */}
+        {!loaded && (
+          <span
+            aria-hidden
+            className="bg-muted/60 absolute inset-0 animate-pulse rounded-lg"
+          />
+        )}
+        <Image
+          src={src}
+          alt={product.name}
+          fill
+          sizes={sizes}
+          priority={priority}
+          unoptimized={isBundledArt}
+          className={cn(
+            "object-contain transition-opacity duration-300",
+            loaded ? "opacity-100" : "opacity-0",
+            className
+          )}
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+        />
+      </>
     );
   }
 
