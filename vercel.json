@@ -1,10 +1,3 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/(.*)", "destination": "https://mn-backend-8zl9.vercel.app/api" }],
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  }
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }
