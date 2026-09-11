@@ -50,9 +50,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* applies the saved accent before first paint, so it never flashes */}
-        <script
+        {/* <script
           dangerouslySetInnerHTML={{ __html: accentBootstrapScript }}
-        />
+        /> */}
       </head>
       <body className={`${inter.variable} ${sora.variable} antialiased`}>
         <Providers>
