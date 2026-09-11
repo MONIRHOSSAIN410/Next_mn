@@ -1,11 +1,19 @@
 node_modules
+<<<<<<< HEAD
 /.next
 /out
 /build
-.env
 .env*.local
 .vercel
 next-env.d.ts
 *.tsbuildinfo
 .DS_Store
 npm-debug.log*
+=======
+.env.*.local
+.vercel
+*.log
+.DS_Store
+coverage
+>>>>>>> 93efe45 (backend mobile)
+config.bat
