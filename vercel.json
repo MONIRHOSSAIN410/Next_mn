@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+<<<<<<< HEAD
   "rewrites": [
     {
       "source": "/(.*)",
@@ -7,3 +8,13 @@
     }
   ]
 }
+=======
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/index.js" }],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  }
+}
+>>>>>>> 93efe45 (backend mobile)
